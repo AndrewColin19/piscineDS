@@ -1,30 +1,21 @@
 import psycopg2
-import os
 
 conn = psycopg2.connect(database="postgres",
-                        user='postgres', password='mysecretpassword', 
-                        host='127.0.0.1', port='5432'
-)
+                        user='postgres', password='mysecretpassword',
+                        host='127.0.0.1', port='5432')
 
 conn.autocommit = True
 cursor = conn.cursor()
 
-sql = f'''CREATE TABLE IF NOT EXISTS customers (
-    event_time timestamp with time zone,
-    event_type VARCHAR (50),
-    product_id INTEGER,
-    price MONEY,
-    user_id numeric,
-    user_session text
-    );'''
+cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
+tables = cursor.fetchall()
 
-cursor.execute(sql)
-allTable = ""
-	
-for filename in os.listdir(os.getcwd() + "/customer"):
-	#with open(os.path.join(os.getcwd() + "/customer/" , filename), 'r') as f: # open in readonly mode
-	allTable = allTable + " " + filename[:len(filename) - 4]
+names = []
+for table in tables:
+    if (table[0].startswith("data_202")):
+        names.append("SELECT * FROM " + table[0])
 
-sql = f'''Select * into customer  from  {allTable}'''
+sql = f"CREATE TABLE IF NOT EXISTS customers AS ({' UNION '.join(names)})"
 cursor.execute(sql)
+
 conn.close()
