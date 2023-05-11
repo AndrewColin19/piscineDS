@@ -8,7 +8,7 @@ conn.autocommit = True
 cursor = conn.cursor()
 
 sql = '''CREATE TABLE temp (LIKE customers);
-        INSERT INTO temp SELECT DISTINCT * FROM customers;
+        INSERT INTO temp SELECT DISTINCT ON (event_type, product_id, price, user_id, user_session)* FROM customers;
         DROP TABLE customers;
         ALTER TABLE temp RENAME TO customers;'''
 
